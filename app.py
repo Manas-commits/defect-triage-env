@@ -58,6 +58,8 @@ class ResetRequest(BaseModel):
     task_id: str = "task_1_classify"
     seed: int = 42
 
+    model_config = {"extra": "ignore"}  # silently ignore unknown fields
+
 
 class StepResponse(BaseModel):
     observation: Observation
@@ -77,7 +79,7 @@ def health() -> dict[str, str]:
 
 
 @app.post("/reset", response_model=Observation, tags=["env"])
-def reset(request: ResetRequest) -> Observation:
+def reset(request: Optional[ResetRequest] = None) -> Observation:
     """
     Start a new episode.
 
@@ -86,6 +88,8 @@ def reset(request: ResetRequest) -> Observation:
     """
     global _env
     try:
+        if request is None:
+            request = ResetRequest()
         _env = ManufacturingDefectEnv(task_id=request.task_id, seed=request.seed)
         observation = _env.reset()
         return observation
