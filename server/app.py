@@ -1,5 +1,5 @@
 """
-app.py
+server/app.py
 
 FastAPI server for the Manufacturing Defect Triage RL environment.
 Exposes the environment over HTTP on port 7860 (Hugging Face Spaces standard).
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -128,8 +128,12 @@ def state() -> dict[str, Any]:
 # Entry point
 # ---------------------------------------------------------------------------
 
-if __name__ == "__main__":
+def main():
+    """Entry point for the OpenEnv server."""
     import uvicorn
-
     port = int(os.environ.get("PORT", 7860))
-    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run("server.app:app", host="0.0.0.0", port=port, reload=False)
+
+
+if __name__ == "__main__":
+    main()
