@@ -1,0 +1,13 @@
+openenv-core==0.2.3
+openai>=2.7.2
+pydantic<3.0,>=2.7
+numpy<2.0,>=1.26
+scipy<2.0,>=1.13
+fastapi>=0.115.2
+uvicorn[standard]>=0.35.0
+python-dotenv<2.0,>=1.0
+pyyaml<7.0,>=6.0
+huggingface_hub>=0.25.1
+
+[dev]
+pytest<9.0,>=8.2

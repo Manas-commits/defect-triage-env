@@ -1,0 +1,6 @@
+Collecting openenv
+  Using cached openenv-0.1.13-py3-none-any.whl.metadata (1.6 kB)
+Requirement already satisfied: numpy in ./.venv/lib/python3.12/site-packages (from openenv) (1.26.4)
+Using cached openenv-0.1.13-py3-none-any.whl (12 kB)
+Installing collected packages: openenv
+Successfully installed openenv-0.1.13
