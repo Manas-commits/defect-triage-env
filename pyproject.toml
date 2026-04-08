@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "manufacturing-defect-triage"
+version = "1.0.0"
+description = "An RL environment where an agent triages manufacturing defects on a production line."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7,<3.0",
+    "numpy>=1.26,<2.0",
+    "scipy>=1.13,<2.0",
+    "fastapi>=0.111,<0.115",
+    "uvicorn[standard]>=0.29,<0.31",
+    "openai>=1.30,<2.0",
+    "python-dotenv>=1.0,<2.0",
+    "pyyaml>=6.0,<7.0",
+    "huggingface_hub>=0.23,<0.25",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2,<9.0", "httpx>=0.27,<0.28"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["env*"]
+
+[tool.openenv]
+name = "manufacturing-defect-triage"
+version = "1.0.0"
+entry_point = "app:app"
