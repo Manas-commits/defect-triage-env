@@ -1,17 +1,11 @@
 """
 env/graders.py
-
-Deterministic graders for the Manufacturing Defect Triage RL environment.
-Each grader returns (score: float, feedback: str).
-
-All scores are strictly within (0.01, 0.99) as required by the competition.
-All graders are fully deterministic: identical inputs always produce
-identical outputs (no randomness involved).
 """
 
 from __future__ import annotations
 
 from scipy import stats
+import math
 
 from env.models import Action
 
@@ -24,12 +18,14 @@ _MAX_SCORE = 0.99
 
 
 def _clamp(score: float) -> float:
-    """Clamp score to strictly open interval (0.01, 0.99)."""
+    """Clamp score to strictly open interval (0.01, 0.99), with NaN safety."""
+    if score is None or math.isnan(score):
+        return _MIN_SCORE
     return max(_MIN_SCORE, min(_MAX_SCORE, score))
 
 
 # ---------------------------------------------------------------------------
-# Defect category families (for partial credit in Task 1)
+# Defect category families
 # ---------------------------------------------------------------------------
 
 _CATEGORY_FAMILIES: dict[str, str] = {
@@ -41,7 +37,7 @@ _CATEGORY_FAMILIES: dict[str, str] = {
 }
 
 # ---------------------------------------------------------------------------
-# Root-cause categories (for partial credit in Task 3)
+# Root-cause categories
 # ---------------------------------------------------------------------------
 
 _ROOT_CAUSE_CATEGORIES: dict[str, str] = {
@@ -58,18 +54,6 @@ _ROOT_CAUSE_CATEGORIES: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 def classify_grader(action: Action, ground_truth: str) -> tuple[float, str]:
-    """
-    Grade a 'classify' action.
-
-    Scoring (before clamping):
-        0.95 — exact match with ground-truth category
-        0.50 — same family (structural: dimensional+assembly,
-                             surface: surface+cosmetic,
-                             material: material)
-        0.05 — wrong category
-
-    All scores clamped to (0.01, 0.99).
-    """
     agent_cat = action.defect_category
 
     if agent_cat is None:
@@ -103,13 +87,7 @@ def prioritize_grader(
     action: Action,
     ground_truth_order: list[str],
 ) -> tuple[float, str]:
-    """
-    Grade a 'prioritize' action using Kendall Tau rank correlation.
 
-    Scoring:
-        raw = (kendall_tau + 1) / 2   →  mapped to [0, 1]
-        then scaled to [0.05, 0.95] and clamped to (0.01, 0.99)
-    """
     agent_order = action.priority_order
 
     if not agent_order:
@@ -126,9 +104,15 @@ def prioritize_grader(
 
     tau, p_value = stats.kendalltau(agent_ranks, truth_ranks)
 
-    # Normalise Kendall Tau from [-1, 1] to [0, 1], then scale to [0.05, 0.95]
+    # 🔴 FIX: Handle NaN tau
+    if tau is None or math.isnan(tau):
+        tau = 0.0
+
     raw = (tau + 1.0) / 2.0
-    score = round(0.05 + raw * 0.90, 4)
+    score = 0.05 + raw * 0.90
+
+    # 🔴 FIX: final clamp AFTER all math (no rounding risk)
+    score = _clamp(score)
 
     if score >= 0.85:
         quality = "Excellent ranking"
@@ -143,7 +127,7 @@ def prioritize_grader(
         f"{quality}: Kendall Tau = {tau:.4f}, normalised score = {score:.4f} "
         f"(p={p_value:.4f}, n={len(common_ids)} items)."
     )
-    return _clamp(score), feedback
+    return score, feedback
 
 
 # ---------------------------------------------------------------------------
@@ -151,16 +135,6 @@ def prioritize_grader(
 # ---------------------------------------------------------------------------
 
 def diagnose_grader(action: Action, ground_truth_cause: str) -> tuple[float, str]:
-    """
-    Grade a 'diagnose' action.
-
-    Scoring (before clamping):
-        0.95 — exact match with true root cause
-        0.40 — same category (machine_issues, human_issues, supply_issues)
-        0.05 — wrong
-
-    All scores clamped to (0.01, 0.99).
-    """
     agent_cause = action.root_cause
 
     if agent_cause is None:
