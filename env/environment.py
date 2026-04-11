@@ -103,7 +103,7 @@ class ManufacturingDefectEnv:
         """
         self._step_count = 0
         self._done = False
-        self._current_score = 0.0
+        self._current_score = 0.01
         self._action_history = []
         self._confidence_history = []
 
@@ -154,8 +154,8 @@ class ManufacturingDefectEnv:
         # --- Anti-reward-hacking check 1: wrong action type ---
         if action.action_type != expected_action_type:
             reward = Reward(
-                score=0.0,
-                partial_credit=0.0,
+                score=0.01,
+                partial_credit=0.01,
                 feedback=(
                     f"Wrong action_type: expected '{expected_action_type}' "
                     f"for task '{self.task_id}', got '{action.action_type}'."
@@ -163,7 +163,7 @@ class ManufacturingDefectEnv:
                 done=True,
             )
             self._done = True
-            self._current_score = 0.0
+            self._current_score = 0.01
             info["hack_detected"] = "wrong_action_type"
             return self._current_observation, reward, True, info
 
@@ -175,13 +175,13 @@ class ManufacturingDefectEnv:
             for fp in self._action_history[-REPETITION_WINDOW:]
         ):
             reward = Reward(
-                score=0.0,
-                partial_credit=0.0,
+                score=0.01,
+                partial_credit=0.01,
                 feedback="Repetitive action detected — possible reward hacking.",
                 done=True,
             )
             self._done = True
-            self._current_score = 0.0
+            self._current_score = 0.01
             info["hack_detected"] = "repetitive_action"
             return self._current_observation, reward, True, info
 
@@ -189,7 +189,7 @@ class ManufacturingDefectEnv:
         partial_credit, grader_feedback = self._grade(action)
 
         # --- Step penalty ---
-        score = max(0.0, partial_credit - STEP_PENALTY * self._step_count)
+        score = max(0.01, partial_credit - STEP_PENALTY * self._step_count)
 
         # --- Anti-reward-hacking check 3: always-1.0 confidence ---
         self._confidence_history.append(action.confidence)
@@ -197,18 +197,18 @@ class ManufacturingDefectEnv:
             len(self._confidence_history) >= 3
             and all(c == 1.0 for c in self._confidence_history)
         ):
-            score = max(0.0, score - ALWAYS_FULL_CONFIDENCE_PENALTY)
+            score = max(0.01, score - ALWAYS_FULL_CONFIDENCE_PENALTY)
             grader_feedback += (
                 " | Overconfidence penalty applied: confidence was 1.0 on every step."
             )
             info["hack_detected"] = "always_full_confidence"
 
         # --- Confidence bonus ---
-        if action.confidence > 0.8 and partial_credit == 1.0:
-            score = min(1.0, score + CONFIDENCE_BONUS)
+        if action.confidence > 0.8 and partial_credit >= 0.94:
+            score = min(0.99, score + CONFIDENCE_BONUS)
             grader_feedback += " | Confidence bonus applied (+0.1)."
 
-        score = round(score, 4)
+        score = round(max(0.01, min(0.99, score)), 4)
         self._current_score = score
         self._done = True  # single-step episode per task
 
