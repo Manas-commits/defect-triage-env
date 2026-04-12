@@ -178,7 +178,7 @@ class Reward(BaseModel):
         ...,
         ge=0.01,
         le=0.99,
-        description="Primary reward signal normalised to [0.0, 1.0].",
+        description="Primary reward signal normalised to [0.01, 0.99].",
     )
     partial_credit: float = Field(
         ...,
