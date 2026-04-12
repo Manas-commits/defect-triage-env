@@ -35,7 +35,7 @@ observation_space: See env/models.py — Observation class
 action_space: See env/models.py — Action class
 reward_range: [0.01, 0.99]
 
-entry_point: app:app
+entry_point: server.app:main
 port: 7860
 
 endpoints:
