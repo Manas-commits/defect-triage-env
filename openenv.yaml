@@ -1,0 +1,45 @@
+name: manufacturing-defect-triage
+version: 1.0.0
+description: >
+  An RL environment where an agent triages manufacturing defects on a production line.
+  The agent classifies defect types, prioritises repair queues, and diagnoses root causes.
+  Designed for evaluating LLM agents on structured industrial decision-making tasks.
+
+author: your-name-here
+
+tasks:
+  - id: task_1_classify
+    name: Defect Classification
+    difficulty: easy
+    description: >
+      Classify the type of defect from sensor data and description.
+      The agent receives a single defect observation and must output one of:
+      dimensional, surface, material, assembly, cosmetic.
+
+  - id: task_2_prioritize
+    name: Defect Queue Prioritization
+    difficulty: medium
+    description: >
+      Given a queue of 10 defects with sensor and image metadata, output an
+      optimal repair priority order. Scored with Kendall Tau rank correlation.
+
+  - id: task_3_diagnose
+    name: Root Cause Diagnosis
+    difficulty: hard
+    description: >
+      Given a pattern of 15 defects across 3 shifts and 5 machines, identify
+      the single systemic root cause. One of: tool_wear, calibration_drift,
+      material_defect, operator_error, machine_vibration.
+
+observation_space: See env/models.py — Observation class
+action_space: See env/models.py — Action class
+reward_range: [0.01, 0.99]
+
+entry_point: app:app
+port: 7860
+
+endpoints:
+  health:  GET  /health
+  reset:   POST /reset
+  step:    POST /step
+  state:   GET  /state
